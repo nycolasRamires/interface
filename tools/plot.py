@@ -3,6 +3,8 @@ from pysid.identification.models import polymodel
 from pysid.io.csv_data import gen_data
 import matplotlib.pyplot as plt
 
+__all__ = ['plot']
+
 def plot(model,u,y):
     """
     generate data based on the model and plots the result

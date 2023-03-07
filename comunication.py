@@ -1,10 +1,12 @@
 """
 Module for the functions that do the prints and make the comunication with the user
 """
-import tkinter as tk   
+import tkinter as tk
 from tkinter.filedialog import askopenfilename
+from tools.plot import plot
+from tools.solve import *
 from pysid.io.csv_data import *
-from . import solve, plot
+
 
 def initial_menu():
     """
@@ -239,4 +241,4 @@ def main():
                    f.write(str(item)+"-")
            # print(config)
 
-if __name__ == __main__: main()
+if __name__ == '__main__' : main()

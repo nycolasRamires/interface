@@ -1,11 +1,13 @@
 
 from pysid.io.print import print_model
 from pysid.identification.models import polymodel
-from pysid.identification.pemethod import arx, els
-from pysid.identification.recursive import rls
+from pysid.identification.pemethod import arx
+from pysid.identification.recursive import rls, els
 from pysid.io.csv_data import gen_data
 from numpy.linalg import inv
 from numpy import matmul,concatenate,ones,power
+
+_all__ = ['ls_interface','els_interface','rls_interface']
 
 def ls_interface(na,nb,nk,u,y,prec=3):
     """
@@ -88,7 +90,7 @@ def els_interface(na,nb,nc,nk,u,y,th=0.005,n_max=500,prec=3):
     # print("Infos de regressão(n de amostras, sis mimo..)\n")
     return m
 
-def els_interface(na,nb,nk,u,y,prec=3):
+def rls_interface(na,nb,nk,u,y,prec=3):
     """
     identifies a model with recursive least squares
     
