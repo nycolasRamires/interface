@@ -4,9 +4,8 @@ Module for the functions that do the prints and make the comunication with the u
 import tkinter as tk
 from tkinter.filedialog import askopenfilename
 from tools.plot import plot
-from tools.solve import *
+from tools import solve
 from pysid.io.csv_data import *
-
 
 def initial_menu():
     """
@@ -17,14 +16,16 @@ def initial_menu():
         Value representing the chosen option
 
     """
-    print(f'Pysid(v0.1) - Identificação de sistemas')
-    print("Escolha uma opção:")
-    print("1 - Solução de minímos quadrados (MQ)")
-    print("2 - Solução de minímos quadrados estendido (EMQ)")
-    print("3 - Solução de minímos quadrados recursivo (RMQ)")
-    print("4 - Informações relevantes")
-    print("5 - Configurações")
-    print("0 - Sair")
+    print(f'Pysid(v0.1) - System Identification')
+    print("Choose an option:")
+    print("1 - Least Squares Solution (LS)")
+    print("2 - Extended Least Squares Solution (ELS)")
+    print("3 - Recursive Least Squares Solution (RLS)")
+    print("4 - Design Controler by Virtual Reference Feedback Tuning")
+    print("5 - Relevant Information")
+    print("6 - Settings")
+    print("0 - Exit")
+
     cmd = int(input(">> "))
     if cmd >= 0 and cmd <= 5:
         return cmd
@@ -41,11 +42,11 @@ def print_infos():
     None.
 
     """
-    print("- O seprador default é a vírgula.")
-    print("- No .csv a ordem das colunas deve ser entradas(u), saídas(y)")
-    print("- As ordens dos polinomios devem ser inteiros")
-    print("- Utilize arquivos .csv ou .txt")
-    print("- O minimos quadrados(MQ) e o minimos quadrados recursivo(MQR) devem dar resultados\n muito próximos, variam apenas na implementação")
+    print("- The default separator is comma.")
+    print("- In .csv files, the order of the columns should be inputs(u), outputs(y).")
+    print("- The orders of the polynomials should be integers.")
+    print("- Use .csv or .txt files.")
+    print("- The Least Squares Solution (LS) and Recursive Least Squares Solution (RLS) \n should give very similar results, differing only in implementation.")
     print("\n--------------\n")
 
 
@@ -69,13 +70,13 @@ def print_config_menu(config):
     # numero max de repetições
     # separador padrão do csv
     # numero de linhas a serem ignoradas no csv
-    print("Escolha uma opção de configuração:")
-    print("1 - Alterar separador padrão do csv\nAtual: ", config[0])
-    print("2 - Quantidade de linha de dados a serem ignorados(pelo cabeçalho)\nAtual: ", config[1])
-    print("3 - Numero de algarismos significativos a serem mostrados nos resultados\nAtual: ", config[2])
-    print("4 - Numero máximo de reptições(Apenas para MQE)\nAtual: ", config[3])
-    print("5 - Diferença miníma entre a soma quadratica de dois erros consecutivos necessaria para assumir-se que houve convergencia(em %)(Apenas para MQE)\nAtual: ", config[4])
-    print("0 - Sair")
+    print("Choose a configuration option:")
+    print("1 - Change default csv separator\nCurrent: ", config[0])
+    print("2 - Number of lines to be ignored (header size)\nCurrent: ", config[1])
+    print("3 - Number of significant digits to be displayed in the results\nCurrent: ", config[2])
+    print("4 - Maximum number of iterations (Only for ELS)\nCurrent: ", config[3])
+    print("5 - Minimum difference between the sum of two consecutive quadratic errors required to assume convergence (in %) (Only for ELS)\nCurrent: ", config[4])
+    print("0 - Exit")
     cmd = int(input(">> "))
     if cmd >= 0 and cmd <= 5:
         return cmd
@@ -101,23 +102,23 @@ def change_config(cmd,config):
 
     """
     if cmd == 1:
-        print("Informe o novo separador:")
+        print("Enter the new separator:")
         config[cmd-1] = input("\n>> ")
     elif cmd == 2:
-        print("Informe a quantidade de linha de dados a serem ignorados(pelo cabeçalho):")
+        print("Enter the number of data lines to be ignored (by the header):")
         config[cmd-1] = int(input("\n>> "))
     elif cmd == 3:
-        print("Informe o numero de algarismos significativos a serem mostrados nos resultados:")
+        print("Enter the number of significant digits to be displayed in the results:")
         config[cmd-1] = int(input("\n>> "))
     elif cmd == 4:
-        print("Informe o numero máximo de reptições a serem feitas(Apenas para MQE):") 
+        print("Enter the maximum number of iterations to be performed (Only for ELS):") 
         config[cmd-1] = int(input("\n>> "))
     elif cmd == 5:
-        print("Informe a diferença miníma entre a soma quadratica de dois erros consecutivos necessaria para assumir-se que houve convergencia(em %):")
+        print("Enter the minimum difference between the sum of two consecutive quadratic errors required to assume convergence (in %) (Only for ELS):")
         config[cmd-1] = int(input("\n>> "))
     elif cmd == 0:
         pass
-    print("\n *** Configurações salvas *** \n")
+    print("\n *** Settings saved successfully *** \n")
 
     return config
 def sep_data(nu,ny,data):
@@ -197,14 +198,16 @@ def main():
             #Abrir o seletor de arquivos
             if not repeat_file:
                 file = False
-                input("Precione ENTER para escolher um arquivo ")
+                input("Press ENTER to choose a file ")
+                root = tk.Tk()
                 filename = askopenfilename() # show an "Open" dialog box and return the path to the selected file
+                root.destroy()
                 if filename is not None:
                     if filename.endswith('.csv') or filename.endswith('.txt'):
                         data = load_data(filename,delim=config[0],skip_rows=int(config[1]))
-                        nu = int(input("Informe quantas colunas de entradas há na amostragem:\n>> "))
+                        nu = int(input(" Enter how many input columns there are in the sampling:\n>> "))
                         if nu > data.shape[1]-1:
-                            print("***Valor inválido, não há colunas referentes a saída***\n")
+                            print("*** Invalid value, there are no columns related to output***\n")
                         else:
                             file = True #ok, tudo certo com o file
                             ny = data.shape[1]-nu
@@ -214,31 +217,36 @@ def main():
                 if   cmd == 1:
                     m = solve.ls_interface(na,nb,nk,u,y,prec=int(config[2]))
                     if nu == 1 and ny == 1:
-                        p = input("Deseja plotar os dados?[Y/N]\n>> ")
+                        p = input("Do you want to plot the data? [Y/N]\n>> ")
                         if p == 'y' or p == 'Y':
                             plot.plot(m,u,y)
                 elif cmd == 2:
                     m = solve.els_interface(na,nb,nc,nk,u,y,float(config[4])/100,int(config[3]),int(config[2]))
                     if nu == 1 and ny == 1:
-                        p = input("Deseja plotar os dados?[Y/N]\n>> ")
+                        p = input("Do you want to plot the data? [Y/N]\n>> ")
                         if p == 'y' or p == 'Y':
                             plot.plot(m,u,y)
                 elif cmd == 3:
                     solve.rls_interface(na,nb,nk,u,y,int(config[2]))
-
+                elif cmd == 4:
+                    if shape(u)[1] == 1 and shape(y)[1] == 1:
+                        solve.vrft_interface(u,y)
+                    else:
+                        print("VRFT interface is not ready for not siso systems")
                 print("\n-------------------\n")
-                repeat = input("Deseja usar os mesmos dados?[Y/N]\n>> ")
+                repeat = input("Continue with the previously entered data? [Y/N]\n>> ")
                 if repeat == 'Y' or repeat == 'y':
                     repeat_file = True
                 else:
-                    repeat_file = False    
-        elif cmd == 4:
-            print_infos()
+                    repeat_file = False
         elif cmd == 5:
+            print_infos()
+        elif cmd == 6:
            config = change_config(print_config_menu(config),config)
            with open('config.txt','w') as f:
                for item in config:
                    f.write(str(item)+"-")
            # print(config)
 
-if __name__ == '__main__' : main()
+if __name__ == '__main__' :
+    main()
