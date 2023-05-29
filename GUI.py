@@ -4,20 +4,20 @@ Created on Tue Apr 18 11:04:14 2023
 @author: dioge
 """
 from tkinter import filedialog, GROOVE, DISABLED, NORMAL, StringVar, IntVar, LabelFrame, W
+import pysid
 from pysid.identification.pemethod import arx
-from pysid.identification.recursive import els,rls
+# from pysid.identification.recursive import els,rls
 from pysid.io.csv_data import load_data
 import customtkinter as ctk
 
-ctk.set_appearance_mode("System") #dark, System or light
+ctk.set_appearance_mode("Dark") #dark, System or light
 ctk.set_default_color_theme("blue")
-
 # Main window
 root = ctk.CTk() # Create the main window
-root.title("Pysid(v0.1)   System Identification") # window title
+root.title(f'Pysid(v0.1)') # window title
 ws = root.winfo_screenwidth() # width of the screen
 hs = root.winfo_screenheight() # height of the screen
-root.geometry('215x420+%d+%d' % (ws/2-200,hs/2-180)) #window size
+root.geometry('240x420+%d+%d' % (ws/2-200,hs/2-180)) #window size
 
 #information-window
 def info_window():
@@ -44,6 +44,9 @@ infoButton = ctk.CTkButton(root, text="Relevant information", command=info_windo
 infoButton.grid(row=4, column=0, sticky="w", padx=10, pady=1)# Pack the button widget into the window
 
 
+def advOptionsWindow():
+    pass #TODO
+
 def info_window_parameters():
     # Create the sub-window
     sub_window = ctk.CTkToplevel(root)
@@ -61,16 +64,23 @@ def info_window_parameters():
         text_label = ctk.CTkLabel(sub_window, text=s[i], anchor=W)
         text_label.pack(pady=5, padx=5)
 
-def response_window(s):
-    # Create the sub-window
-    sub_window = ctk.CTkToplevel(root)
-    sub_window.focus_set()
+tab_window = ctk.CTkToplevel(root)
+tab_window.withdraw()
+tabs = ctk.CTkTabview(tab_window, width=200)
+i = 0
+def response_tab(s,na):
+    global i
+    global tab_window
+    global tabs
+    tab_window.deiconify()
+    tabStr = "Model " + str(i)
+    i += 1
+    tabs.add(tabStr)
+    tabs.tab(tabStr).grid_columnconfigure(0, weight=1)
+    text_label = ctk.CTkLabel(tabs.tab(tabStr), text=s, font=ctk.CTkFont(family='Helvetica', size=12))
+    text_label.grid(pady=5, padx=5)
+    tabs.grid(column=1,row=1,rowspan=3)
 
-    # Set the sub-window title
-    sub_window.title("Informations")
-    sub_window.geometry("450x300")
-    text_label = ctk.CTkLabel(sub_window, text=s, font=ctk.CTkFont(family='Helvetica', size=12))
-    text_label.pack(pady=5, padx=5)
 
 def printer(x): #for testing
     print(f_path.get())
@@ -123,7 +133,8 @@ def ident(x,na,nb,nc,nk,u,y):
 
 
 def action(x,na,nb,nc,nk,nu,f):
-    if f is not None:
+    print(f)
+    if f != "":
         if f.endswith('.csv') or f.endswith('.txt'):
             data = load_data(f,delim=",",skip_rows=0) # TODO : change settings option
             ny = data.shape[1]-nu
@@ -132,13 +143,23 @@ def action(x,na,nb,nc,nk,nu,f):
             m = ident(x,na,nb,nc,nk,u,y)
             # show_model(m)
             s = m.gen_model_string()
-            response_window(s)
+            response_tab(s,na)
         else:
-            pass
-            #FORMATOS ACEITOS SÃO TXT E CSV
+            warning_window = ctk.CTkToplevel(root)
+            warning_window.title("Error")
+            warning_window.bell()
+            warning_window.geometry("150x150")
+            s = "The file must be a .csv or .txt"
+            text_label = ctk.CTkLabel(warning_window, text=s, font=ctk.CTkFont(family='Helvetica', size=15))
+            text_label.grid(pady=5, padx=5)
     else:
-        pass
-        #SELECIONE UM ARQ
+        warning_window = ctk.CTkToplevel(root)
+        warning_window.title("Error")
+        warning_window.bell()
+        warning_window.geometry("170x70")
+        s = "Choose a file first"
+        text_label = ctk.CTkLabel(warning_window, text=s, font=ctk.CTkFont(family='Helvetica', size=12))
+        text_label.grid(pady=5, padx=5)
 
 # for the file associate part
 file_frame = ctk.CTkFrame(root) #frame for file name
@@ -151,7 +172,7 @@ file_label = ctk.CTkLabel(file_frame, text="No file chosen") #text for file name
 file_label.grid(row=0, column=0, sticky="w", padx=10)
 
 # Define a function to choose a file and update the file label
-f_path = StringVar(root,None) #variable to extract the name from the function
+f_path = StringVar(root,"") #variable to extract the name from the function
 data = []
 def choose_file():
     filetypes = (
@@ -201,6 +222,9 @@ parametersFrame = ctk.CTkFrame(root,width=20)
 parametersFrame.grid(row=3, column=0, sticky="w",pady=5,padx=10)
 parametersLabel = ctk.CTkLabel(master=parametersFrame,text="Parameters",font=ctk.CTkFont(family='Helvetica', size=15))
 parametersLabel.grid(row=0, column=0, sticky="w",padx=10)
+
+advOptionsButton = ctk.CTkButton(parametersFrame,command=advOptionsWindow, text = "Adv. Options",width=10,height=15)
+advOptionsButton.grid(row=7,column=0,sticky="w,",padx=5, pady=5)
 
 # img = tk.PhotoImage(file = "question3.png") # "?" image for the button
 infoButtonParamters = ctk.CTkButton(parametersFrame,text="?",
